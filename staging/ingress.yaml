@@ -1,10 +1,10 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: forja-ingress
-  namespace: forja-staging
+  name: launch.run.ingress
+  namespace: launch-run-dev
   labels:
-    app.kubernetes.io/part-of: forja
+    app.kubernetes.io/part-of: launch-run
   annotations:
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
@@ -12,11 +12,11 @@ metadata:
 spec:
   tls:
     - hosts:
-        - "*.forja.app"
-        - api.forja.app
-      secretName: forja-tls
+        - "*.launch-run.app"
+        - api.launch-run.app
+      secretName: launch.run.tls
   rules:
-    - host: api.forja.app
+    - host: api.launch-run.app
       http:
         paths:
           - path: /
@@ -26,7 +26,7 @@ spec:
                 name: gateway
                 port:
                   number: 8080
-    - host: "*.forja.app"
+    - host: "*.launch-run.app"
       http:
         paths:
           - path: /

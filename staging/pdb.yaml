@@ -2,9 +2,9 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: gateway-pdb
-  namespace: forja-staging
+  namespace: launch-run-dev
   labels:
-    app.kubernetes.io/part-of: forja
+    app.kubernetes.io/part-of: launch-run
 spec:
   minAvailable: 1
   selector:
@@ -15,9 +15,9 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: listing-service-pdb
-  namespace: forja-staging
+  namespace: launch-run-dev
   labels:
-    app.kubernetes.io/part-of: forja
+    app.kubernetes.io/part-of: launch-run
 spec:
   minAvailable: 1
   selector:
@@ -28,9 +28,9 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: user-service-pdb
-  namespace: forja-staging
+  namespace: launch-run-dev
   labels:
-    app.kubernetes.io/part-of: forja
+    app.kubernetes.io/part-of: launch-run
 spec:
   minAvailable: 1
   selector:

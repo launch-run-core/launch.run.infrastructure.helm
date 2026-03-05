@@ -2,10 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gateway
-  namespace: forja-staging
+  namespace: launch-run-dev
   labels:
     app: gateway
-    app.kubernetes.io/part-of: forja
+    app.kubernetes.io/part-of: launch-run
 spec:
   replicas: 3
   selector:
@@ -15,21 +15,21 @@ spec:
     metadata:
       labels:
         app: gateway
-        app.kubernetes.io/part-of: forja
+        app.kubernetes.io/part-of: launch-run
     spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: gateway
-          image: ghcr.io/forja-platform/forja-gateway:latest
+          image: ghcr.io/launch-run-core/launch.run.gateway:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
               protocol: TCP
           envFrom:
             - configMapRef:
-                name: forja-config
+                name: launch-run-config
             - secretRef:
-                name: forja-secrets
+                name: launch-run-secrets
           resources:
             requests:
               cpu: 100m
@@ -54,10 +54,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: gateway
-  namespace: forja-staging
+  namespace: launch-run-dev
   labels:
     app: gateway
-    app.kubernetes.io/part-of: forja
+    app.kubernetes.io/part-of: launch-run
 spec:
   type: ClusterIP
   selector:
@@ -72,10 +72,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: gateway-lb
-  namespace: forja-staging
+  namespace: launch-run-dev
   labels:
     app: gateway
-    app.kubernetes.io/part-of: forja
+    app.kubernetes.io/part-of: launch-run
 spec:
   type: LoadBalancer
   selector:
@@ -90,10 +90,10 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: gateway
-  namespace: forja-staging
+  namespace: launch-run-dev
   labels:
     app: gateway
-    app.kubernetes.io/part-of: forja
+    app.kubernetes.io/part-of: launch-run
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

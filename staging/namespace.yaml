@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: forja-staging
+  name: launch-run-dev
   labels:
-    app.kubernetes.io/part-of: forja
+    app.kubernetes.io/part-of: launch-run
     environment: staging

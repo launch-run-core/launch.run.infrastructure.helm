@@ -6,7 +6,7 @@
 #   docker compose up -d            # starts infra + services
 #   docker compose up -d gateway    # start only gateway (+ its deps)
 
-name: forja
+name: launch-run
 
 services:
   # ─── API Gateway ─────────────────────────────────────────────────────────────
@@ -14,7 +14,7 @@ services:
     build:
       context: .
       dockerfile: services/gateway/Dockerfile
-    image: forja/gateway:local
+    image: launch-run/gateway:local
     ports:
       - "8080:8080"
     env_file: .env
@@ -24,7 +24,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       JWT_SECRET: ${JWT_SECRET}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -43,7 +43,7 @@ services:
     build:
       context: .
       dockerfile: services/listing-service/Dockerfile
-    image: forja/listing-service:local
+    image: launch-run/listing-service:local
     ports:
       - "9001:9001"
     env_file: .env
@@ -58,7 +58,7 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -81,7 +81,7 @@ services:
     build:
       context: .
       dockerfile: services/search-service/Dockerfile
-    image: forja/search-service:local
+    image: launch-run/search-service:local
     ports:
       - "9002:9002"
     env_file: .env
@@ -93,7 +93,7 @@ services:
       MEILISEARCH_URL: ${MEILISEARCH_URL}
       MEILISEARCH_KEY: ${MEILISEARCH_KEY}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -114,7 +114,7 @@ services:
     build:
       context: .
       dockerfile: services/user-service/Dockerfile
-    image: forja/user-service:local
+    image: launch-run/user-service:local
     ports:
       - "9003:9003"
     env_file: .env
@@ -127,7 +127,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       MSG91_AUTH_KEY: ${MSG91_AUTH_KEY}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -150,7 +150,7 @@ services:
     build:
       context: .
       dockerfile: services/transaction-service/Dockerfile
-    image: forja/transaction-service:local
+    image: launch-run/transaction-service:local
     ports:
       - "9004:9004"
     env_file: .env
@@ -162,7 +162,7 @@ services:
       RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
       RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -183,7 +183,7 @@ services:
     build:
       context: .
       dockerfile: services/analytics-service/Dockerfile
-    image: forja/analytics-service:local
+    image: launch-run/analytics-service:local
     ports:
       - "9005:9005"
     env_file: .env
@@ -194,7 +194,7 @@ services:
       KAFKA_BROKERS: ${KAFKA_BROKERS}
       CLICKHOUSE_DSN: ${CLICKHOUSE_DSN}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -215,7 +215,7 @@ services:
     build:
       context: .
       dockerfile: services/intelligence-service/Dockerfile
-    image: forja/intelligence-service:local
+    image: launch-run/intelligence-service:local
     ports:
       - "9006:9006"
     env_file: .env
@@ -226,7 +226,7 @@ services:
       KAFKA_BROKERS: ${KAFKA_BROKERS}
       CLICKHOUSE_DSN: ${CLICKHOUSE_DSN}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -249,7 +249,7 @@ services:
     build:
       context: .
       dockerfile: services/review-service/Dockerfile
-    image: forja/review-service:local
+    image: launch-run/review-service:local
     ports:
       - "9007:9007"
     env_file: .env
@@ -259,7 +259,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -280,7 +280,7 @@ services:
     build:
       context: .
       dockerfile: services/notification-service/Dockerfile
-    image: forja/notification-service:local
+    image: launch-run/notification-service:local
     ports:
       - "9008:9008"
     env_file: .env
@@ -292,7 +292,7 @@ services:
       KAFKA_BROKERS: ${KAFKA_BROKERS}
       MSG91_AUTH_KEY: ${MSG91_AUTH_KEY}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -315,7 +315,7 @@ services:
     build:
       context: .
       dockerfile: services/media-service/Dockerfile
-    image: forja/media-service:local
+    image: launch-run/media-service:local
     ports:
       - "9009:9009"
     env_file: .env
@@ -327,7 +327,7 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -348,7 +348,7 @@ services:
     build:
       context: .
       dockerfile: services/auction-service/Dockerfile
-    image: forja/auction-service:local
+    image: launch-run/auction-service:local
     ports:
       - "9020:9020"
     env_file: .env
@@ -358,7 +358,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -379,7 +379,7 @@ services:
     build:
       context: .
       dockerfile: services/rental-service/Dockerfile
-    image: forja/rental-service:local
+    image: launch-run/rental-service:local
     ports:
       - "9021:9021"
     env_file: .env
@@ -389,7 +389,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -410,7 +410,7 @@ services:
     build:
       context: .
       dockerfile: services/payment-service/Dockerfile
-    image: forja/payment-service:local
+    image: launch-run/payment-service:local
     ports:
       - "9022:9022"
     env_file: .env
@@ -423,7 +423,7 @@ services:
       RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
       RAZORPAY_TEST_MODE: ${RAZORPAY_TEST_MODE:-true}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -444,7 +444,7 @@ services:
     build:
       context: .
       dockerfile: services/auth-service/Dockerfile
-    image: forja/auth-service:local
+    image: launch-run/auth-service:local
     ports:
       - "9012:9012"
     env_file: .env
@@ -454,7 +454,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -475,7 +475,7 @@ services:
     build:
       context: .
       dockerfile: services/messaging-service/Dockerfile
-    image: forja/messaging-service:local
+    image: launch-run/messaging-service:local
     ports:
       - "9014:9014"
     env_file: .env
@@ -485,7 +485,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -506,7 +506,7 @@ services:
     build:
       context: .
       dockerfile: services/geolocation-service/Dockerfile
-    image: forja/geolocation-service:local
+    image: launch-run/geolocation-service:local
     ports:
       - "9015:9015"
     env_file: .env
@@ -516,7 +516,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -537,7 +537,7 @@ services:
     build:
       context: .
       dockerfile: services/category-service/Dockerfile
-    image: forja/category-service:local
+    image: launch-run/category-service:local
     ports:
       - "9016:9016"
     env_file: .env
@@ -547,7 +547,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -568,7 +568,7 @@ services:
     build:
       context: .
       dockerfile: services/attribute-service/Dockerfile
-    image: forja/attribute-service:local
+    image: launch-run/attribute-service:local
     ports:
       - "9017:9017"
     env_file: .env
@@ -578,7 +578,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -599,7 +599,7 @@ services:
     build:
       context: .
       dockerfile: services/pricing-service/Dockerfile
-    image: forja/pricing-service:local
+    image: launch-run/pricing-service:local
     ports:
       - "9018:9018"
     env_file: .env
@@ -609,7 +609,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -630,7 +630,7 @@ services:
     build:
       context: .
       dockerfile: services/verification-service/Dockerfile
-    image: forja/verification-service:local
+    image: launch-run/verification-service:local
     ports:
       - "9023:9023"
     env_file: .env
@@ -640,7 +640,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -661,7 +661,7 @@ services:
     build:
       context: .
       dockerfile: services/moderation-service/Dockerfile
-    image: forja/moderation-service:local
+    image: launch-run/moderation-service:local
     ports:
       - "9024:9024"
     env_file: .env
@@ -671,7 +671,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -692,7 +692,7 @@ services:
     build:
       context: .
       dockerfile: services/experiment-service/Dockerfile
-    image: forja/experiment-service:local
+    image: launch-run/experiment-service:local
     ports:
       - "9025:9025"
     env_file: .env
@@ -702,7 +702,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -723,7 +723,7 @@ services:
     build:
       context: .
       dockerfile: services/feature-flag-service/Dockerfile
-    image: forja/feature-flag-service:local
+    image: launch-run/feature-flag-service:local
     ports:
       - "9026:9026"
     env_file: .env
@@ -733,7 +733,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -754,7 +754,7 @@ services:
     build:
       context: .
       dockerfile: services/campaign-service/Dockerfile
-    image: forja/campaign-service:local
+    image: launch-run/campaign-service:local
     ports:
       - "9027:9027"
     env_file: .env
@@ -764,7 +764,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -785,7 +785,7 @@ services:
     build:
       context: .
       dockerfile: services/coupon-service/Dockerfile
-    image: forja/coupon-service:local
+    image: launch-run/coupon-service:local
     ports:
       - "9028:9028"
     env_file: .env
@@ -795,7 +795,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -816,7 +816,7 @@ services:
     build:
       context: .
       dockerfile: services/loyalty-service/Dockerfile
-    image: forja/loyalty-service:local
+    image: launch-run/loyalty-service:local
     ports:
       - "9029:9029"
     env_file: .env
@@ -826,7 +826,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -847,7 +847,7 @@ services:
     build:
       context: .
       dockerfile: services/subscription-service/Dockerfile
-    image: forja/subscription-service:local
+    image: launch-run/subscription-service:local
     ports:
       - "9030:9030"
     env_file: .env
@@ -857,7 +857,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -878,7 +878,7 @@ services:
     build:
       context: .
       dockerfile: services/dispute-service/Dockerfile
-    image: forja/dispute-service:local
+    image: launch-run/dispute-service:local
     ports:
       - "9031:9031"
     env_file: .env
@@ -888,7 +888,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -909,7 +909,7 @@ services:
     build:
       context: .
       dockerfile: services/escrow-service/Dockerfile
-    image: forja/escrow-service:local
+    image: launch-run/escrow-service:local
     ports:
       - "9032:9032"
     env_file: .env
@@ -919,7 +919,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -940,7 +940,7 @@ services:
     build:
       context: .
       dockerfile: services/shipping-service/Dockerfile
-    image: forja/shipping-service:local
+    image: launch-run/shipping-service:local
     ports:
       - "9033:9033"
     env_file: .env
@@ -950,7 +950,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -971,7 +971,7 @@ services:
     build:
       context: .
       dockerfile: services/document-service/Dockerfile
-    image: forja/document-service:local
+    image: launch-run/document-service:local
     ports:
       - "9034:9034"
     env_file: .env
@@ -981,7 +981,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1002,7 +1002,7 @@ services:
     build:
       context: .
       dockerfile: services/scheduler-service/Dockerfile
-    image: forja/scheduler-service:local
+    image: launch-run/scheduler-service:local
     ports:
       - "9035:9035"
     env_file: .env
@@ -1012,7 +1012,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1033,7 +1033,7 @@ services:
     build:
       context: .
       dockerfile: services/workflow-service/Dockerfile
-    image: forja/workflow-service:local
+    image: launch-run/workflow-service:local
     ports:
       - "9036:9036"
     env_file: .env
@@ -1043,7 +1043,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1064,7 +1064,7 @@ services:
     build:
       context: .
       dockerfile: services/feed-service/Dockerfile
-    image: forja/feed-service:local
+    image: launch-run/feed-service:local
     ports:
       - "9037:9037"
     env_file: .env
@@ -1074,7 +1074,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1095,7 +1095,7 @@ services:
     build:
       context: .
       dockerfile: services/audit-service/Dockerfile
-    image: forja/audit-service:local
+    image: launch-run/audit-service:local
     ports:
       - "9038:9038"
     env_file: .env
@@ -1105,7 +1105,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1126,7 +1126,7 @@ services:
     build:
       context: .
       dockerfile: services/consent-service/Dockerfile
-    image: forja/consent-service:local
+    image: launch-run/consent-service:local
     ports:
       - "9039:9039"
     env_file: .env
@@ -1136,7 +1136,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1157,7 +1157,7 @@ services:
     build:
       context: .
       dockerfile: services/translation-service/Dockerfile
-    image: forja/translation-service:local
+    image: launch-run/translation-service:local
     ports:
       - "9040:9040"
     env_file: .env
@@ -1167,7 +1167,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1188,7 +1188,7 @@ services:
     build:
       context: .
       dockerfile: services/tax-service/Dockerfile
-    image: forja/tax-service:local
+    image: launch-run/tax-service:local
     ports:
       - "9041:9041"
     env_file: .env
@@ -1198,7 +1198,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1219,7 +1219,7 @@ services:
     build:
       context: .
       dockerfile: services/invoice-service/Dockerfile
-    image: forja/invoice-service:local
+    image: launch-run/invoice-service:local
     ports:
       - "9042:9042"
     env_file: .env
@@ -1229,7 +1229,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1250,7 +1250,7 @@ services:
     build:
       context: .
       dockerfile: services/kyc-service/Dockerfile
-    image: forja/kyc-service:local
+    image: launch-run/kyc-service:local
     ports:
       - "9043:9043"
     env_file: .env
@@ -1260,7 +1260,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1281,7 +1281,7 @@ services:
     build:
       context: .
       dockerfile: services/webhook-service/Dockerfile
-    image: forja/webhook-service:local
+    image: launch-run/webhook-service:local
     ports:
       - "9044:9044"
     env_file: .env
@@ -1291,7 +1291,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1312,7 +1312,7 @@ services:
     build:
       context: .
       dockerfile: services/graph-service/Dockerfile
-    image: forja/graph-service:local
+    image: launch-run/graph-service:local
     ports:
       - "9045:9045"
     env_file: .env
@@ -1322,7 +1322,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1343,7 +1343,7 @@ services:
     build:
       context: .
       dockerfile: services/recommendation-service/Dockerfile
-    image: forja/recommendation-service:local
+    image: launch-run/recommendation-service:local
     ports:
       - "9046:9046"
     env_file: .env
@@ -1353,7 +1353,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1374,7 +1374,7 @@ services:
     build:
       context: .
       dockerfile: services/leaderboard-service/Dockerfile
-    image: forja/leaderboard-service:local
+    image: launch-run/leaderboard-service:local
     ports:
       - "9047:9047"
     env_file: .env
@@ -1384,7 +1384,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1405,7 +1405,7 @@ services:
     build:
       context: .
       dockerfile: services/report-service/Dockerfile
-    image: forja/report-service:local
+    image: launch-run/report-service:local
     ports:
       - "9048:9048"
     env_file: .env
@@ -1415,7 +1415,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1436,7 +1436,7 @@ services:
     build:
       context: .
       dockerfile: services/scraper-service/Dockerfile
-    image: forja/scraper-service:local
+    image: launch-run/scraper-service:local
     ports:
       - "9049:9049"
     env_file: .env
@@ -1446,7 +1446,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1467,7 +1467,7 @@ services:
     build:
       context: .
       dockerfile: services/rate-limiter-service/Dockerfile
-    image: forja/rate-limiter-service:local
+    image: launch-run/rate-limiter-service:local
     ports:
       - "9050:9050"
     env_file: .env
@@ -1477,7 +1477,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1498,7 +1498,7 @@ services:
     build:
       context: .
       dockerfile: services/vector-service/Dockerfile
-    image: forja/vector-service:local
+    image: launch-run/vector-service:local
     ports:
       - "9051:9051"
     env_file: .env
@@ -1508,7 +1508,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1529,7 +1529,7 @@ services:
     build:
       context: .
       dockerfile: services/event-store-service/Dockerfile
-    image: forja/event-store-service:local
+    image: launch-run/event-store-service:local
     ports:
       - "9052:9052"
     env_file: .env
@@ -1539,7 +1539,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1560,7 +1560,7 @@ services:
     build:
       context: .
       dockerfile: services/notification-hub/Dockerfile
-    image: forja/notification-hub:local
+    image: launch-run/notification-hub:local
     ports:
       - "9053:9053"
     env_file: .env
@@ -1570,7 +1570,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1591,7 +1591,7 @@ services:
     build:
       context: .
       dockerfile: services/media-processing/Dockerfile
-    image: forja/media-processing:local
+    image: launch-run/media-processing:local
     ports:
       - "9054:9054"
     env_file: .env
@@ -1601,7 +1601,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1622,7 +1622,7 @@ services:
     build:
       context: .
       dockerfile: services/search-ranking/Dockerfile
-    image: forja/search-ranking:local
+    image: launch-run/search-ranking:local
     ports:
       - "9055:9055"
     env_file: .env
@@ -1632,7 +1632,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1653,7 +1653,7 @@ services:
     build:
       context: .
       dockerfile: services/data-export-service/Dockerfile
-    image: forja/data-export-service:local
+    image: launch-run/data-export-service:local
     ports:
       - "9056:9056"
     env_file: .env
@@ -1663,7 +1663,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1684,7 +1684,7 @@ services:
     build:
       context: .
       dockerfile: services/finance-service/Dockerfile
-    image: forja/finance-service:local
+    image: launch-run/finance-service:local
     ports:
       - "9060:9060"
     env_file: .env
@@ -1694,7 +1694,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1715,7 +1715,7 @@ services:
     build:
       context: .
       dockerfile: services/insurance-service/Dockerfile
-    image: forja/insurance-service:local
+    image: launch-run/insurance-service:local
     ports:
       - "9061:9061"
     env_file: .env
@@ -1725,7 +1725,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       KAFKA_BROKERS: ${KAFKA_BROKERS}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1746,7 +1746,7 @@ services:
     build:
       context: services/ai-service
       dockerfile: Dockerfile
-    image: forja/ai-service:local
+    image: launch-run/ai-service:local
     ports:
       - "9011:9011"
     env_file: .env
@@ -1758,7 +1758,7 @@ services:
       USE_MOCK_INFERENCE: ${USE_MOCK_INFERENCE:-true}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -1784,7 +1784,7 @@ services:
       --max-model-len 4096
       --gpu-memory-utilization 0.9
     networks:
-      - forja
+      - launch-run
     deploy:
       resources:
         reservations:

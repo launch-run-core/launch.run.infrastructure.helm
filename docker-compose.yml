@@ -2,10 +2,10 @@
 # Run: docker compose up -d
 # Services (Go + Python) are defined in docker-compose.override.yml
 
-name: forja
+name: launch-run
 
 networks:
-  forja:
+  launch-run:
     driver: bridge
 
 volumes:
@@ -32,18 +32,18 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: forja
-      POSTGRES_PASSWORD: forja
-      POSTGRES_DB: forja
+      POSTGRES_USER: launch-run
+      POSTGRES_PASSWORD: launch-run
+      POSTGRES_DB: launch-run
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql
     networks:
-      - forja
+      - launch-run
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U forja -d forja"]
+      test: ["CMD-SHELL", "pg_isready -U launch-run -d launch-run"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -59,7 +59,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - forja
+      - launch-run
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -76,7 +76,7 @@ services:
     volumes:
       - redis_sessions_data:/data
     networks:
-      - forja
+      - launch-run
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -93,7 +93,7 @@ services:
     volumes:
       - redis_pubsub_data:/data
     networks:
-      - forja
+      - launch-run
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -120,7 +120,7 @@ services:
     volumes:
       - kafka_data:/bitnami/kafka
     networks:
-      - forja
+      - launch-run
     healthcheck:
       test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list 2>/dev/null"]
       interval: 10s
@@ -139,7 +139,7 @@ services:
     ports:
       - "8081:8081"
     networks:
-      - forja
+      - launch-run
     depends_on:
       kafka:
         condition: service_healthy
@@ -155,9 +155,9 @@ services:
   clickhouse:
     image: clickhouse/clickhouse-server:24
     environment:
-      CLICKHOUSE_DB: forja
-      CLICKHOUSE_USER: forja
-      CLICKHOUSE_PASSWORD: forja
+      CLICKHOUSE_DB: launch-run
+      CLICKHOUSE_USER: launch-run
+      CLICKHOUSE_PASSWORD: launch-run
     ports:
       - "8123:8123"   # HTTP interface
       - "9010:9000"   # Native TCP (host port 9010 to avoid conflicts)
@@ -165,9 +165,9 @@ services:
       - clickhouse_data:/var/lib/clickhouse
       - ./infra/clickhouse/init.sql:/docker-entrypoint-initdb.d/01-init.sql
     networks:
-      - forja
+      - launch-run
     healthcheck:
-      test: ["CMD-SHELL", "clickhouse-client --user forja --password forja --query 'SELECT 1'"]
+      test: ["CMD-SHELL", "clickhouse-client --user launch-run --password launch-run --query 'SELECT 1'"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -178,14 +178,14 @@ services:
   meilisearch:
     image: getmeili/meilisearch:v1.7
     environment:
-      MEILI_MASTER_KEY: ${MEILISEARCH_KEY:-forja-dev-key}
+      MEILI_MASTER_KEY: ${MEILISEARCH_KEY:-launch-run-dev-key}
       MEILI_ENV: development
     ports:
       - "7700:7700"
     volumes:
       - meilisearch_data:/meili_data
     networks:
-      - forja
+      - launch-run
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:7700/health | grep -q available"]
       interval: 5s
@@ -199,8 +199,8 @@ services:
   minio:
     image: minio/minio:latest
     environment:
-      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-forja}
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-forjaforja}
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-launch-run}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-launch-runlaunch-run}
     command: server /data --console-address ":9093"
     ports:
       - "9091:9000"   # S3 API
@@ -208,7 +208,7 @@ services:
     volumes:
       - minio_data:/data
     networks:
-      - forja
+      - launch-run
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:9000/minio/health/live"]
       interval: 10s
@@ -221,16 +221,16 @@ services:
   mongodb:
     image: mongo:7
     environment:
-      MONGO_INITDB_ROOT_USERNAME: forja
-      MONGO_INITDB_ROOT_PASSWORD: forja
-      MONGO_INITDB_DATABASE: forja
+      MONGO_INITDB_ROOT_USERNAME: launch-run
+      MONGO_INITDB_ROOT_PASSWORD: launch-run
+      MONGO_INITDB_DATABASE: launch-run
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
       - ./infra/mongodb/init.js:/docker-entrypoint-initdb.d/01-init.js
     networks:
-      - forja
+      - launch-run
     healthcheck:
       test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping').ok\" | grep -q 1"]
       interval: 10s
@@ -251,7 +251,7 @@ services:
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     networks:
-      - forja
+      - launch-run
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health | grep -qE 'green|yellow'"]
       interval: 15s
@@ -264,7 +264,7 @@ services:
   neo4j:
     image: neo4j:5-community
     environment:
-      NEO4J_AUTH: neo4j/forjaforja
+      NEO4J_AUTH: neo4j/launch-runlaunch-run
       NEO4J_PLUGINS: '["graph-data-science"]'
       NEO4J_dbms_memory_heap_initial__size: 512m
       NEO4J_dbms_memory_heap_max__size: 1g
@@ -275,7 +275,7 @@ services:
       - neo4j_data:/data
       - ./infra/neo4j/init.cypher:/docker-entrypoint-initdb.d/01-init.cypher
     networks:
-      - forja
+      - launch-run
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:7474 || exit 1"]
       interval: 15s
@@ -293,7 +293,7 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
     networks:
-      - forja
+      - launch-run
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:6333/health"]
       interval: 10s
@@ -305,18 +305,18 @@ services:
   timescaledb:
     image: timescale/timescaledb:latest-pg16
     environment:
-      POSTGRES_USER: forja
-      POSTGRES_PASSWORD: forja
-      POSTGRES_DB: forja_timeseries
+      POSTGRES_USER: launch-run
+      POSTGRES_PASSWORD: launch-run
+      POSTGRES_DB: launch_run_timeseries
     ports:
       - "5433:5432"
     volumes:
       - timescaledb_data:/var/lib/postgresql/data
       - ./infra/timescaledb/init.sql:/docker-entrypoint-initdb.d/01-init.sql
     networks:
-      - forja
+      - launch-run
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U forja -d forja_timeseries"]
+      test: ["CMD-SHELL", "pg_isready -U launch-run -d launch_run_timeseries"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -333,7 +333,7 @@ services:
       - scylladb_data:/var/lib/scylla
       - ./infra/scylladb/init.cql:/docker-entrypoint-initdb.d/01-init.cql
     networks:
-      - forja
+      - launch-run
     healthcheck:
       test: ["CMD-SHELL", "cqlsh -e 'describe keyspaces' 2>&1 | grep -v Error"]
       interval: 30s
@@ -348,13 +348,13 @@ services:
     environment:
       DB: postgresql
       DB_PORT: 5432
-      POSTGRES_USER: forja
-      POSTGRES_PWD: forja
+      POSTGRES_USER: launch-run
+      POSTGRES_PWD: launch-run
       POSTGRES_SEEDS: postgres
     ports:
       - "7233:7233"
     networks:
-      - forja
+      - launch-run
     depends_on:
       postgres:
         condition: service_healthy
@@ -380,7 +380,7 @@ services:
       - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     networks:
-      - forja
+      - launch-run
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:9090/-/healthy || exit 1"]
       interval: 10s
@@ -392,7 +392,7 @@ services:
   grafana:
     image: grafana/grafana:11.0.0
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-forja}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-launch-run}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_SERVER_ROOT_URL: http://localhost:3001
     ports:
@@ -401,7 +401,7 @@ services:
       - grafana_data:/var/lib/grafana
       - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
     networks:
-      - forja
+      - launch-run
     depends_on:
       prometheus:
         condition: service_healthy
@@ -423,7 +423,7 @@ services:
     volumes:
       - loki_data:/loki
     networks:
-      - forja
+      - launch-run
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:3100/ready || exit 1"]
       interval: 10s

@@ -2,10 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: feature-flag-service
-  namespace: forja-staging
+  namespace: launch-run-dev
   labels:
     app: feature-flag-service
-    app.kubernetes.io/part-of: forja
+    app.kubernetes.io/part-of: launch-run
 spec:
   replicas: 2
   selector:
@@ -15,21 +15,21 @@ spec:
     metadata:
       labels:
         app: feature-flag-service
-        app.kubernetes.io/part-of: forja
+        app.kubernetes.io/part-of: launch-run
     spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: feature-flag-service
-          image: ghcr.io/forja-platform/forja-feature-flag-service:latest
+          image: ghcr.io/launch-run-core/launch.run.feature-flag-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 9026
               protocol: TCP
           envFrom:
             - configMapRef:
-                name: forja-config
+                name: launch-run-config
             - secretRef:
-                name: forja-secrets
+                name: launch-run-secrets
           resources:
             requests:
               cpu: 100m
@@ -54,10 +54,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: feature-flag-service
-  namespace: forja-staging
+  namespace: launch-run-dev
   labels:
     app: feature-flag-service
-    app.kubernetes.io/part-of: forja
+    app.kubernetes.io/part-of: launch-run
 spec:
   type: ClusterIP
   selector:
@@ -72,10 +72,10 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: feature-flag-service
-  namespace: forja-staging
+  namespace: launch-run-dev
   labels:
     app: feature-flag-service
-    app.kubernetes.io/part-of: forja
+    app.kubernetes.io/part-of: launch-run
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

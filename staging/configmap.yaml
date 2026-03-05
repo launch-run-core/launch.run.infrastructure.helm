@@ -1,16 +1,16 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: forja-config
-  namespace: forja-staging
+  name: launch-run-config
+  namespace: launch-run-dev
   labels:
-    app.kubernetes.io/part-of: forja
+    app.kubernetes.io/part-of: launch-run
 data:
   ENV: staging
   LOG_LEVEL: info
-  KAFKA_BROKERS: kafka.forja-staging.svc.cluster.local:9092
-  MEILISEARCH_URL: http://meilisearch.forja-staging.svc.cluster.local:7700
-  CLICKHOUSE_DSN: clickhouse://forja:forja@clickhouse.forja-staging.svc.cluster.local:9000/forja
-  MINIO_ENDPOINT: minio.forja-staging.svc.cluster.local:9000
-  MINIO_PUBLIC_BASE: https://media.forja.app
-  MINIO_BUCKET: forja-staging
+  KAFKA_BROKERS: kafka.launch-run-dev.svc.cluster.local:9092
+  MEILISEARCH_URL: http://meilisearch.launch-run-dev.svc.cluster.local:7700
+  CLICKHOUSE_DSN: clickhouse://launch-run:launch-run@clickhouse.launch-run-dev.svc.cluster.local:9000/launch-run
+  MINIO_ENDPOINT: minio.launch-run-dev.svc.cluster.local:9000
+  MINIO_PUBLIC_BASE: https://media.launch-run.app
+  MINIO_BUCKET: launch-run-dev
