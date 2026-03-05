@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: forja-staging
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.yaml
+  - gateway.yaml
+  - listing-service.yaml
+  - search-service.yaml
+  - user-service.yaml
+  - transaction-service.yaml
+  - analytics-service.yaml
+  - intelligence-service.yaml
+  - review-service.yaml
+  - notification-service.yaml
+  - media-service.yaml
+  - auction-service.yaml
+  - rental-service.yaml
+  - payment-service.yaml
+  - ai-service.yaml
+  - ingress.yaml
+  - pdb.yaml
+  - monitoring.yaml
+
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  environment: staging

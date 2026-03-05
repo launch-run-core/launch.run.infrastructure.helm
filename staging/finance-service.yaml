@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: finance-service
+  namespace: forja-staging
+  labels:
+    app: finance-service
+    app.kubernetes.io/part-of: forja
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: finance-service
+  template:
+    metadata:
+      labels:
+        app: finance-service
+        app.kubernetes.io/part-of: forja
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: finance-service
+          image: ghcr.io/forja-platform/forja-finance-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9060
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: forja-config
+            - secretRef:
+                name: forja-secrets
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9060
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9060
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: finance-service
+  namespace: forja-staging
+  labels:
+    app: finance-service
+    app.kubernetes.io/part-of: forja
+spec:
+  type: ClusterIP
+  selector:
+    app: finance-service
+  ports:
+    - name: http
+      port: 9060
+      targetPort: 9060
+      protocol: TCP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: finance-service
+  namespace: forja-staging
+  labels:
+    app: finance-service
+    app.kubernetes.io/part-of: forja
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: finance-service
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-ranking
+  namespace: forja-staging
+  labels:
+    app: search-ranking
+    app.kubernetes.io/part-of: forja
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: search-ranking
+  template:
+    metadata:
+      labels:
+        app: search-ranking
+        app.kubernetes.io/part-of: forja
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: search-ranking
+          image: ghcr.io/forja-platform/forja-search-ranking:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9055
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: forja-config
+            - secretRef:
+                name: forja-secrets
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9055
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9055
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-ranking
+  namespace: forja-staging
+  labels:
+    app: search-ranking
+    app.kubernetes.io/part-of: forja
+spec:
+  type: ClusterIP
+  selector:
+    app: search-ranking
+  ports:
+    - name: http
+      port: 9055
+      targetPort: 9055
+      protocol: TCP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: search-ranking
+  namespace: forja-staging
+  labels:
+    app: search-ranking
+    app.kubernetes.io/part-of: forja
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: search-ranking
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

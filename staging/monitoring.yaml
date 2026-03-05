@@ -1,0 +1,186 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: gateway-monitor
+  namespace: forja-staging
+  labels:
+    app: gateway
+    app.kubernetes.io/part-of: forja
+spec:
+  selector:
+    matchLabels:
+      app: gateway
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: listing-service-monitor
+  namespace: forja-staging
+  labels:
+    app: listing-service
+    app.kubernetes.io/part-of: forja
+spec:
+  selector:
+    matchLabels:
+      app: listing-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: search-service-monitor
+  namespace: forja-staging
+  labels:
+    app: search-service
+    app.kubernetes.io/part-of: forja
+spec:
+  selector:
+    matchLabels:
+      app: search-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: user-service-monitor
+  namespace: forja-staging
+  labels:
+    app: user-service
+    app.kubernetes.io/part-of: forja
+spec:
+  selector:
+    matchLabels:
+      app: user-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: transaction-service-monitor
+  namespace: forja-staging
+  labels:
+    app: transaction-service
+    app.kubernetes.io/part-of: forja
+spec:
+  selector:
+    matchLabels:
+      app: transaction-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: analytics-service-monitor
+  namespace: forja-staging
+  labels:
+    app: analytics-service
+    app.kubernetes.io/part-of: forja
+spec:
+  selector:
+    matchLabels:
+      app: analytics-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: intelligence-service-monitor
+  namespace: forja-staging
+  labels:
+    app: intelligence-service
+    app.kubernetes.io/part-of: forja
+spec:
+  selector:
+    matchLabels:
+      app: intelligence-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: review-service-monitor
+  namespace: forja-staging
+  labels:
+    app: review-service
+    app.kubernetes.io/part-of: forja
+spec:
+  selector:
+    matchLabels:
+      app: review-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: notification-service-monitor
+  namespace: forja-staging
+  labels:
+    app: notification-service
+    app.kubernetes.io/part-of: forja
+spec:
+  selector:
+    matchLabels:
+      app: notification-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: media-service-monitor
+  namespace: forja-staging
+  labels:
+    app: media-service
+    app.kubernetes.io/part-of: forja
+spec:
+  selector:
+    matchLabels:
+      app: media-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ai-service-monitor
+  namespace: forja-staging
+  labels:
+    app: ai-service
+    app.kubernetes.io/part-of: forja
+spec:
+  selector:
+    matchLabels:
+      app: ai-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s

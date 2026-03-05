@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transaction-service
+  namespace: forja-staging
+  labels:
+    app: transaction-service
+    app.kubernetes.io/part-of: forja
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: transaction-service
+  template:
+    metadata:
+      labels:
+        app: transaction-service
+        app.kubernetes.io/part-of: forja
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: transaction-service
+          image: ghcr.io/forja-platform/forja-transaction-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9004
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: forja-config
+            - secretRef:
+                name: forja-secrets
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9004
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9004
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transaction-service
+  namespace: forja-staging
+  labels:
+    app: transaction-service
+    app.kubernetes.io/part-of: forja
+spec:
+  type: ClusterIP
+  selector:
+    app: transaction-service
+  ports:
+    - name: http
+      port: 9004
+      targetPort: 9004
+      protocol: TCP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: transaction-service
+  namespace: forja-staging
+  labels:
+    app: transaction-service
+    app.kubernetes.io/part-of: forja
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: transaction-service
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

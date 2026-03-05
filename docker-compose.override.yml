@@ -1,0 +1,1796 @@
+# docker-compose.override.yml — application services (Go + Python)
+# Automatically merged with docker-compose.yml by docker compose.
+# All services depend on infra being healthy before starting.
+#
+# Usage:
+#   docker compose up -d            # starts infra + services
+#   docker compose up -d gateway    # start only gateway (+ its deps)
+
+name: forja
+
+services:
+  # ─── API Gateway ─────────────────────────────────────────────────────────────
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+    image: forja/gateway:local
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      PORT: "8080"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Listing Service ─────────────────────────────────────────────────────────
+  listing-service:
+    build:
+      context: .
+      dockerfile: services/listing-service/Dockerfile
+    image: forja/listing-service:local
+    ports:
+      - "9001:9001"
+    env_file: .env
+    environment:
+      PORT: "9001"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      MEILISEARCH_URL: ${MEILISEARCH_URL}
+      MEILISEARCH_KEY: ${MEILISEARCH_KEY}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9001/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Search Service ───────────────────────────────────────────────────────────
+  search-service:
+    build:
+      context: .
+      dockerfile: services/search-service/Dockerfile
+    image: forja/search-service:local
+    ports:
+      - "9002:9002"
+    env_file: .env
+    environment:
+      PORT: "9002"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      MEILISEARCH_URL: ${MEILISEARCH_URL}
+      MEILISEARCH_KEY: ${MEILISEARCH_KEY}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9002/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── User Service ─────────────────────────────────────────────────────────────
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    image: forja/user-service:local
+    ports:
+      - "9003:9003"
+    env_file: .env
+    environment:
+      PORT: "9003"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      REDIS_SESSIONS_URL: ${REDIS_SESSIONS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      JWT_SECRET: ${JWT_SECRET}
+      MSG91_AUTH_KEY: ${MSG91_AUTH_KEY}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      redis-sessions:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9003/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Transaction Service ──────────────────────────────────────────────────────
+  transaction-service:
+    build:
+      context: .
+      dockerfile: services/transaction-service/Dockerfile
+    image: forja/transaction-service:local
+    ports:
+      - "9004:9004"
+    env_file: .env
+    environment:
+      PORT: "9004"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9004/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Analytics Service ────────────────────────────────────────────────────────
+  analytics-service:
+    build:
+      context: .
+      dockerfile: services/analytics-service/Dockerfile
+    image: forja/analytics-service:local
+    ports:
+      - "9005:9005"
+    env_file: .env
+    environment:
+      PORT: "9005"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      CLICKHOUSE_DSN: ${CLICKHOUSE_DSN}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9005/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Intelligence Service ─────────────────────────────────────────────────────
+  intelligence-service:
+    build:
+      context: .
+      dockerfile: services/intelligence-service/Dockerfile
+    image: forja/intelligence-service:local
+    ports:
+      - "9006:9006"
+    env_file: .env
+    environment:
+      PORT: "9006"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      CLICKHOUSE_DSN: ${CLICKHOUSE_DSN}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9006/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Review Service ───────────────────────────────────────────────────────────
+  review-service:
+    build:
+      context: .
+      dockerfile: services/review-service/Dockerfile
+    image: forja/review-service:local
+    ports:
+      - "9007:9007"
+    env_file: .env
+    environment:
+      PORT: "9007"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9007/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Notification Service ─────────────────────────────────────────────────────
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+    image: forja/notification-service:local
+    ports:
+      - "9008:9008"
+    env_file: .env
+    environment:
+      PORT: "9008"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      REDIS_PUBSUB_URL: ${REDIS_PUBSUB_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      MSG91_AUTH_KEY: ${MSG91_AUTH_KEY}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      redis-pubsub:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9008/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Media Service ────────────────────────────────────────────────────────────
+  media-service:
+    build:
+      context: .
+      dockerfile: services/media-service/Dockerfile
+    image: forja/media-service:local
+    ports:
+      - "9009:9009"
+    env_file: .env
+    environment:
+      PORT: "9009"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9009/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Auction Service ──────────────────────────────────────────────────────────
+  auction-service:
+    build:
+      context: .
+      dockerfile: services/auction-service/Dockerfile
+    image: forja/auction-service:local
+    ports:
+      - "9020:9020"
+    env_file: .env
+    environment:
+      PORT: "9020"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9020/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Rental Service ───────────────────────────────────────────────────────────
+  rental-service:
+    build:
+      context: .
+      dockerfile: services/rental-service/Dockerfile
+    image: forja/rental-service:local
+    ports:
+      - "9021:9021"
+    env_file: .env
+    environment:
+      PORT: "9021"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9021/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Payment Service ──────────────────────────────────────────────────────────
+  payment-service:
+    build:
+      context: .
+      dockerfile: services/payment-service/Dockerfile
+    image: forja/payment-service:local
+    ports:
+      - "9022:9022"
+    env_file: .env
+    environment:
+      PORT: "9022"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
+      RAZORPAY_TEST_MODE: ${RAZORPAY_TEST_MODE:-true}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9022/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Auth Service ────────────────────────────────────────────────────────────
+  auth-service:
+    build:
+      context: .
+      dockerfile: services/auth-service/Dockerfile
+    image: forja/auth-service:local
+    ports:
+      - "9012:9012"
+    env_file: .env
+    environment:
+      PORT: "9012"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9012/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Messaging Service ──────────────────────────────────────────────────────
+  messaging-service:
+    build:
+      context: .
+      dockerfile: services/messaging-service/Dockerfile
+    image: forja/messaging-service:local
+    ports:
+      - "9014:9014"
+    env_file: .env
+    environment:
+      PORT: "9014"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9014/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Geolocation Service ────────────────────────────────────────────────────
+  geolocation-service:
+    build:
+      context: .
+      dockerfile: services/geolocation-service/Dockerfile
+    image: forja/geolocation-service:local
+    ports:
+      - "9015:9015"
+    env_file: .env
+    environment:
+      PORT: "9015"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9015/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Category Service ───────────────────────────────────────────────────────
+  category-service:
+    build:
+      context: .
+      dockerfile: services/category-service/Dockerfile
+    image: forja/category-service:local
+    ports:
+      - "9016:9016"
+    env_file: .env
+    environment:
+      PORT: "9016"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9016/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Attribute Service ──────────────────────────────────────────────────────
+  attribute-service:
+    build:
+      context: .
+      dockerfile: services/attribute-service/Dockerfile
+    image: forja/attribute-service:local
+    ports:
+      - "9017:9017"
+    env_file: .env
+    environment:
+      PORT: "9017"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9017/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Pricing Service ────────────────────────────────────────────────────────
+  pricing-service:
+    build:
+      context: .
+      dockerfile: services/pricing-service/Dockerfile
+    image: forja/pricing-service:local
+    ports:
+      - "9018:9018"
+    env_file: .env
+    environment:
+      PORT: "9018"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9018/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Verification Service ───────────────────────────────────────────────────
+  verification-service:
+    build:
+      context: .
+      dockerfile: services/verification-service/Dockerfile
+    image: forja/verification-service:local
+    ports:
+      - "9023:9023"
+    env_file: .env
+    environment:
+      PORT: "9023"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9023/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Moderation Service ─────────────────────────────────────────────────────
+  moderation-service:
+    build:
+      context: .
+      dockerfile: services/moderation-service/Dockerfile
+    image: forja/moderation-service:local
+    ports:
+      - "9024:9024"
+    env_file: .env
+    environment:
+      PORT: "9024"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9024/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Experiment Service ─────────────────────────────────────────────────────
+  experiment-service:
+    build:
+      context: .
+      dockerfile: services/experiment-service/Dockerfile
+    image: forja/experiment-service:local
+    ports:
+      - "9025:9025"
+    env_file: .env
+    environment:
+      PORT: "9025"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9025/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Feature Flag Service ───────────────────────────────────────────────────
+  feature-flag-service:
+    build:
+      context: .
+      dockerfile: services/feature-flag-service/Dockerfile
+    image: forja/feature-flag-service:local
+    ports:
+      - "9026:9026"
+    env_file: .env
+    environment:
+      PORT: "9026"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9026/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Campaign Service ───────────────────────────────────────────────────────
+  campaign-service:
+    build:
+      context: .
+      dockerfile: services/campaign-service/Dockerfile
+    image: forja/campaign-service:local
+    ports:
+      - "9027:9027"
+    env_file: .env
+    environment:
+      PORT: "9027"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9027/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Coupon Service ─────────────────────────────────────────────────────────
+  coupon-service:
+    build:
+      context: .
+      dockerfile: services/coupon-service/Dockerfile
+    image: forja/coupon-service:local
+    ports:
+      - "9028:9028"
+    env_file: .env
+    environment:
+      PORT: "9028"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9028/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Loyalty Service ────────────────────────────────────────────────────────
+  loyalty-service:
+    build:
+      context: .
+      dockerfile: services/loyalty-service/Dockerfile
+    image: forja/loyalty-service:local
+    ports:
+      - "9029:9029"
+    env_file: .env
+    environment:
+      PORT: "9029"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9029/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Subscription Service ───────────────────────────────────────────────────
+  subscription-service:
+    build:
+      context: .
+      dockerfile: services/subscription-service/Dockerfile
+    image: forja/subscription-service:local
+    ports:
+      - "9030:9030"
+    env_file: .env
+    environment:
+      PORT: "9030"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9030/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Dispute Service ────────────────────────────────────────────────────────
+  dispute-service:
+    build:
+      context: .
+      dockerfile: services/dispute-service/Dockerfile
+    image: forja/dispute-service:local
+    ports:
+      - "9031:9031"
+    env_file: .env
+    environment:
+      PORT: "9031"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9031/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Escrow Service ─────────────────────────────────────────────────────────
+  escrow-service:
+    build:
+      context: .
+      dockerfile: services/escrow-service/Dockerfile
+    image: forja/escrow-service:local
+    ports:
+      - "9032:9032"
+    env_file: .env
+    environment:
+      PORT: "9032"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9032/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Shipping Service ───────────────────────────────────────────────────────
+  shipping-service:
+    build:
+      context: .
+      dockerfile: services/shipping-service/Dockerfile
+    image: forja/shipping-service:local
+    ports:
+      - "9033:9033"
+    env_file: .env
+    environment:
+      PORT: "9033"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9033/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Document Service ───────────────────────────────────────────────────────
+  document-service:
+    build:
+      context: .
+      dockerfile: services/document-service/Dockerfile
+    image: forja/document-service:local
+    ports:
+      - "9034:9034"
+    env_file: .env
+    environment:
+      PORT: "9034"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9034/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Scheduler Service ──────────────────────────────────────────────────────
+  scheduler-service:
+    build:
+      context: .
+      dockerfile: services/scheduler-service/Dockerfile
+    image: forja/scheduler-service:local
+    ports:
+      - "9035:9035"
+    env_file: .env
+    environment:
+      PORT: "9035"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9035/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Workflow Service ───────────────────────────────────────────────────────
+  workflow-service:
+    build:
+      context: .
+      dockerfile: services/workflow-service/Dockerfile
+    image: forja/workflow-service:local
+    ports:
+      - "9036:9036"
+    env_file: .env
+    environment:
+      PORT: "9036"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9036/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Feed Service ───────────────────────────────────────────────────────────
+  feed-service:
+    build:
+      context: .
+      dockerfile: services/feed-service/Dockerfile
+    image: forja/feed-service:local
+    ports:
+      - "9037:9037"
+    env_file: .env
+    environment:
+      PORT: "9037"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9037/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Audit Service ──────────────────────────────────────────────────────────
+  audit-service:
+    build:
+      context: .
+      dockerfile: services/audit-service/Dockerfile
+    image: forja/audit-service:local
+    ports:
+      - "9038:9038"
+    env_file: .env
+    environment:
+      PORT: "9038"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9038/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Consent Service ────────────────────────────────────────────────────────
+  consent-service:
+    build:
+      context: .
+      dockerfile: services/consent-service/Dockerfile
+    image: forja/consent-service:local
+    ports:
+      - "9039:9039"
+    env_file: .env
+    environment:
+      PORT: "9039"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9039/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Translation Service ────────────────────────────────────────────────────
+  translation-service:
+    build:
+      context: .
+      dockerfile: services/translation-service/Dockerfile
+    image: forja/translation-service:local
+    ports:
+      - "9040:9040"
+    env_file: .env
+    environment:
+      PORT: "9040"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9040/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Tax Service ────────────────────────────────────────────────────────────
+  tax-service:
+    build:
+      context: .
+      dockerfile: services/tax-service/Dockerfile
+    image: forja/tax-service:local
+    ports:
+      - "9041:9041"
+    env_file: .env
+    environment:
+      PORT: "9041"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9041/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Invoice Service ────────────────────────────────────────────────────────
+  invoice-service:
+    build:
+      context: .
+      dockerfile: services/invoice-service/Dockerfile
+    image: forja/invoice-service:local
+    ports:
+      - "9042:9042"
+    env_file: .env
+    environment:
+      PORT: "9042"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9042/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── KYC Service ────────────────────────────────────────────────────────────
+  kyc-service:
+    build:
+      context: .
+      dockerfile: services/kyc-service/Dockerfile
+    image: forja/kyc-service:local
+    ports:
+      - "9043:9043"
+    env_file: .env
+    environment:
+      PORT: "9043"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9043/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Webhook Service ────────────────────────────────────────────────────────
+  webhook-service:
+    build:
+      context: .
+      dockerfile: services/webhook-service/Dockerfile
+    image: forja/webhook-service:local
+    ports:
+      - "9044:9044"
+    env_file: .env
+    environment:
+      PORT: "9044"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9044/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Graph Service ──────────────────────────────────────────────────────────
+  graph-service:
+    build:
+      context: .
+      dockerfile: services/graph-service/Dockerfile
+    image: forja/graph-service:local
+    ports:
+      - "9045:9045"
+    env_file: .env
+    environment:
+      PORT: "9045"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9045/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Recommendation Service ─────────────────────────────────────────────────
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: services/recommendation-service/Dockerfile
+    image: forja/recommendation-service:local
+    ports:
+      - "9046:9046"
+    env_file: .env
+    environment:
+      PORT: "9046"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9046/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Leaderboard Service ────────────────────────────────────────────────────
+  leaderboard-service:
+    build:
+      context: .
+      dockerfile: services/leaderboard-service/Dockerfile
+    image: forja/leaderboard-service:local
+    ports:
+      - "9047:9047"
+    env_file: .env
+    environment:
+      PORT: "9047"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9047/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Report Service ─────────────────────────────────────────────────────────
+  report-service:
+    build:
+      context: .
+      dockerfile: services/report-service/Dockerfile
+    image: forja/report-service:local
+    ports:
+      - "9048:9048"
+    env_file: .env
+    environment:
+      PORT: "9048"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9048/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Scraper Service ────────────────────────────────────────────────────────
+  scraper-service:
+    build:
+      context: .
+      dockerfile: services/scraper-service/Dockerfile
+    image: forja/scraper-service:local
+    ports:
+      - "9049:9049"
+    env_file: .env
+    environment:
+      PORT: "9049"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9049/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Rate Limiter Service ───────────────────────────────────────────────────
+  rate-limiter-service:
+    build:
+      context: .
+      dockerfile: services/rate-limiter-service/Dockerfile
+    image: forja/rate-limiter-service:local
+    ports:
+      - "9050:9050"
+    env_file: .env
+    environment:
+      PORT: "9050"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9050/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Vector Service ─────────────────────────────────────────────────────────
+  vector-service:
+    build:
+      context: .
+      dockerfile: services/vector-service/Dockerfile
+    image: forja/vector-service:local
+    ports:
+      - "9051:9051"
+    env_file: .env
+    environment:
+      PORT: "9051"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9051/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Event Store Service ────────────────────────────────────────────────────
+  event-store-service:
+    build:
+      context: .
+      dockerfile: services/event-store-service/Dockerfile
+    image: forja/event-store-service:local
+    ports:
+      - "9052:9052"
+    env_file: .env
+    environment:
+      PORT: "9052"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9052/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Notification Hub ───────────────────────────────────────────────────────
+  notification-hub:
+    build:
+      context: .
+      dockerfile: services/notification-hub/Dockerfile
+    image: forja/notification-hub:local
+    ports:
+      - "9053:9053"
+    env_file: .env
+    environment:
+      PORT: "9053"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9053/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Media Processing ──────────────────────────────────────────────────────
+  media-processing:
+    build:
+      context: .
+      dockerfile: services/media-processing/Dockerfile
+    image: forja/media-processing:local
+    ports:
+      - "9054:9054"
+    env_file: .env
+    environment:
+      PORT: "9054"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9054/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Search Ranking ─────────────────────────────────────────────────────────
+  search-ranking:
+    build:
+      context: .
+      dockerfile: services/search-ranking/Dockerfile
+    image: forja/search-ranking:local
+    ports:
+      - "9055:9055"
+    env_file: .env
+    environment:
+      PORT: "9055"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9055/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Data Export Service ────────────────────────────────────────────────────
+  data-export-service:
+    build:
+      context: .
+      dockerfile: services/data-export-service/Dockerfile
+    image: forja/data-export-service:local
+    ports:
+      - "9056:9056"
+    env_file: .env
+    environment:
+      PORT: "9056"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9056/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Finance Service ────────────────────────────────────────────────────────
+  finance-service:
+    build:
+      context: .
+      dockerfile: services/finance-service/Dockerfile
+    image: forja/finance-service:local
+    ports:
+      - "9060:9060"
+    env_file: .env
+    environment:
+      PORT: "9060"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9060/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Insurance Service ──────────────────────────────────────────────────────
+  insurance-service:
+    build:
+      context: .
+      dockerfile: services/insurance-service/Dockerfile
+    image: forja/insurance-service:local
+    ports:
+      - "9061:9061"
+    env_file: .env
+    environment:
+      PORT: "9061"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9061/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── AI Service (Python / FastAPI / LangGraph) ────────────────────────────────
+  ai-service:
+    build:
+      context: services/ai-service
+      dockerfile: Dockerfile
+    image: forja/ai-service:local
+    ports:
+      - "9011:9011"
+    env_file: .env
+    environment:
+      API_PORT: "9011"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      USE_MOCK_INFERENCE: ${USE_MOCK_INFERENCE:-true}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    networks:
+      - forja
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9011/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # ─── vLLM inference (GPU only, opt-in via --profile gpu) ─────────────────────
+  vllm:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8000:8000"
+    command: >
+      --model Qwen/Qwen2.5-7B-Instruct
+      --max-model-len 4096
+      --gpu-memory-utilization 0.9
+    networks:
+      - forja
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    profiles:
+      - gpu

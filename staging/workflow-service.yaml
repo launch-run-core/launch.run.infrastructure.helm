@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workflow-service
+  namespace: forja-staging
+  labels:
+    app: workflow-service
+    app.kubernetes.io/part-of: forja
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: workflow-service
+  template:
+    metadata:
+      labels:
+        app: workflow-service
+        app.kubernetes.io/part-of: forja
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: workflow-service
+          image: ghcr.io/forja-platform/forja-workflow-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9036
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: forja-config
+            - secretRef:
+                name: forja-secrets
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9036
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9036
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workflow-service
+  namespace: forja-staging
+  labels:
+    app: workflow-service
+    app.kubernetes.io/part-of: forja
+spec:
+  type: ClusterIP
+  selector:
+    app: workflow-service
+  ports:
+    - name: http
+      port: 9036
+      targetPort: 9036
+      protocol: TCP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: workflow-service
+  namespace: forja-staging
+  labels:
+    app: workflow-service
+    app.kubernetes.io/part-of: forja
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: workflow-service
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
